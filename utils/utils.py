@@ -12,9 +12,12 @@ def str_to_vector(text=""):
     return list_words_to_vector(words)
 
 def str_to_words(text = ""):
-    words = []
+	identify = string.maketrans('', '')  
+	delEStr = string.punctuation +'0123456789'
+	cleanLine =text.translate(identify,delEStr) 
+	words=[i for i in cleanLine.split(' ')if i!='']
+	return words
 
-    return words
 
 
 def list_words_to_vector(words=[]):
