@@ -29,6 +29,6 @@ def list_words_to_vector(words=[]):
     for word in words:
         vector += StaticData.word_vectors.get_vector(word)
 
-    return vector
+    return vector / m
 
 

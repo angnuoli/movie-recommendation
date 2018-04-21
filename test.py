@@ -13,6 +13,9 @@ y = x + x
 
 t = str_to_list("abds asd")
 
+x = [1,2]
+y = x[:-3:-1]
+
 import string
 from nltk import word_tokenize
 
