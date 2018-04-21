@@ -1,30 +1,9 @@
 import re
-import numpy as np
-from gensim.models import KeyedVectors
+import string
 
 
 class MyVectorizer:
     """Convert a collection of text documents to a matrix of token counts.
-    Parameters
-    ----------
-    max_df : float in range [0.0, 1.0] or int, default=1.0
-        When building the vocabulary ignore terms that have a document
-        frequency strictly higher than the given threshold (corpus-specific
-        stop words).
-        If float, the parameter represents a proportion of documents, integer
-        absolute counts.
-        This parameter is ignored if vocabulary is not None.
-    min_df : float in range [0.0, 1.0] or int, default=1
-        When building the vocabulary ignore terms that have a document
-        frequency strictly lower than the given threshold. This value is also
-        called cut-off in the literature.
-        If float, the parameter represents a proportion of documents, integer
-        absolute counts.
-        This parameter is ignored if vocabulary is not None.
-    max_features : int or None, default=None
-        If not None, build a vocabulary that only consider the top
-        max_features ordered by term frequency across the corpus.
-        This parameter is ignored if vocabulary is not None.
     """
 
     # stop words
@@ -120,37 +99,13 @@ class MyVectorizer:
 
     # lemmatizer and stemmer
 
-    def __init__(self, encoding='utf-8',
-                 decode_error='strict', strip_accents='ascii',
-                 lowercase=True, preprocessor=None, tokenizer=None,
-                 stop_words=None, token_pattern=r"(?u)\b\w\w+\b",
-                 ngram_range=(1, 1), analyzer='word',
-                 max_df=0.9, min_df=3, max_features=None,
-                 vocabulary=None, binary=False, dtype=np.int64, bag_of_topics=StaticData.bag_of_classes):
-        self.max_df = max_df
-        self.min_df = min_df
-        self.max_features = max_features
-        self.vocabulary = vocabulary
-        self.strip_accents = strip_accents
+    def __init__(self,
+                 preprocessor=None,
+                 tokenizer=None,
+                 stop_words=stop_words_):
         self.tokenizer = tokenizer
-        self.dtype = dtype
+        self.stop_words = stop_words
         self.preprocessor = preprocessor
-        self.encoding = encoding
-        self.decode_error = decode_error
-        self.strip_accents = strip_accents
-        self.preprocessor = preprocessor
-        self.analyzer = analyzer
-        self.lowercase = lowercase
-        self.token_pattern = token_pattern
-        if stop_words is None:
-            self.stop_words = self.stop_words_
-        self.max_df = max_df
-        self.min_df = min_df
-        self.max_features = max_features
-        self.ngram_range = ngram_range
-        self.binary = binary
-        self.bag_of_topics = bag_of_topics
-        self.word_vectors = KeyedVectors.load_word2vec_format('../dataset/GoogleNews-vectors-negative300.bin', binary=True)
 
     def my_tokenizer(self, raw_text) -> {}:
         """ Extract tokenized words from text.
@@ -162,28 +117,10 @@ class MyVectorizer:
         # tokenize words, remove stop words
         tokenizer = re.compile(r'\b[a-z][a-z.-]*\b')
         tokens = tokenizer.findall(raw_text)
-        valid_tokens = {}
+        valid_tokens = []
         for token in tokens:
             if token not in self.stop_words and len(token) >= 4:
-                valid_tokens[token] = valid_tokens.setdefault(token, 0) + 1
-
-        """
-        # lemmatization process
-        lemmas = []
-        for word, tag in tagged_tokens:
-            wn_tag = self.get_word_net_pos(tag)
-            if wn_tag is None:
-                lemmas.append(self.lemmatizer.lemmatize(word))
-            else:
-                lemmas.append(self.lemmatizer.lemmatize(word, pos=wn_tag))
-        # stemming process, remove short stems
-        stems = []
-        for token in lemmas:
-            term = self.stemmer.stem(token)
-            if len(term) >= 4:
-                stems.append(term)
-        return stems
-        """
+                valid_tokens.append(token)
 
         return valid_tokens
 
@@ -204,9 +141,6 @@ class MyVectorizer:
 
     def _build_analyzer(self):
         """Return a callable that handles pre-processing and tokenization"""
-        if callable(self.analyzer):
-            return self.analyzer
-
         preprocess = self._build_preprocessor()
         tokenize = self._build_tokenizer()
 
@@ -217,52 +151,4 @@ class MyVectorizer:
         """
 
         analyze = self._build_analyzer()
-        vector = array()
-
-        for feature, tfs in analyze(text).items():
-            # calculate term frequency and dfs
-            x = self.word_vectors.get_vector(feature)
-
-            add_value(document.tfs['all'], key=feature, value=tfs)
-            add_value(df_term, key=feature, value=1)
-
-        if flag:
-            StaticData.df_term = df_term
-
-    def transform(self, text):
-        """Learn the vocabulary dictionary and return term-document matrix.
-        This is equivalent to fit followed by transform, but more efficiently
-        implemented.
-        Parameters
-        ----------
-        text : string
-            An iterable which yields either str, unicode or file objects.
-        Returns
-        -------
-        X : array, [n_samples, n_features]
-            Document-term matrix.
-            :param text:
-        """
-
-        self.count_vocab(raw_documents, True)
-        print("Calculate term and document frequency of terms in class...")
-        calculate_static_data(raw_documents)
-
-        n_doc = len(raw_documents)
-        max_doc_count = (max_df
-                         if isinstance(max_df, numbers.Integral)
-                         else max_df * n_doc)
-        min_doc_count = (min_df
-                         if isinstance(min_df, numbers.Integral)
-                         else min_df * n_doc)
-        if max_doc_count < min_doc_count:
-            raise ValueError(
-                "max_df corresponds to < documents than min_df")
-
-        print("\n========== Feature selection ==========")
-        vocabulary_ = self._limit_features(raw_documents,
-                                           max_doc_count,
-                                           min_doc_count,
-                                           max_features)
-
-        return raw_documents, vocabulary_
+        return analyze(text)

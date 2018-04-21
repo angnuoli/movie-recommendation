@@ -1,14 +1,14 @@
-class User():
+class User:
 
-    def __init__(self, id):
-    	# reviews ndarray, time increasing
-        self.reviews = []
-        self.id = id
-
-
-class Movie():
-
-    def __init__(self, id):
+    def __init__(self, id_):
         # reviews ndarray, time increasing
-        self.id = id
+        self.reviews = []
+        self.id = id_
+
+
+class Movie:
+
+    def __init__(self, id_):
+        # reviews ndarray, time increasing
+        self.id = id_
         self.reviews = []

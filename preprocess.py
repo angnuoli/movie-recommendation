@@ -5,14 +5,7 @@ import codecs
 
 from data_structure import StaticData
 from data_structure.data_structure import User, Movie
-from utils.utils import str_to_vector
-
-
-def split_reviews():
-    train_reviews = []
-    test_reviews = []
-
-    return train_reviews, test_reviews
+from utils.utils import str_to_vector, split_dataset
 
 
 def preprocess():
@@ -21,17 +14,16 @@ def preprocess():
 
     :return: samples: (user_id, movie_id, rating)
              users: map (user_id -> User)
-             movies: map (moview_id -> Movie)
+             movies: map (movie_id -> Movie)
     """
-    reviews = []
-
     with codecs.open('../dataset/data.json', 'r', 'utf-8') as f:
         reviews = json.load(f)
 
     # data structure: reviews[i]['rating', 'title', 'movie', 'review', 'link', 'user']
     StaticData.reviews = reviews
-    train_reviews, test_reviews = split_reviews(reviews)
-    StaticData.train_reviews = train_reviews
+    train_reviews, test_reviews = split_dataset(reviews)
+    # train_reviews = test_reviews = reviews
+    # StaticData.train_reviews = train_reviews
     StaticData.test_reviews = test_reviews
 
     users = {}
