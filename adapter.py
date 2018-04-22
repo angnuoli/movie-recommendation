@@ -1,48 +1,74 @@
 import numpy as np
 
 class Adapt(object):
-    def __init__(self, samples, users, movies, user_input_length, movie_input_length):
+    def __init__(self, samples, users, movies, similarity, userMaxLen, movieMaxLen, neighborMaxLen, threshold, embedding_dim):
         self.samples = samples
-        self.users = users
-        self.movies = movies
-        self.user_input_length = user_input_length
-        self.movie_input_length = movie_input_length
+        self.embedding_dim = embedding_dim
+        self.users = self.rvlist_to_rvnp(users, userMaxLen)
+        self.movies = self.rvlist_to_rvnp(movies, movieMaxLen)
+        simNeighDic = self.filterUnsimilarUser(similarity, threshold)
+        neighs = self.buildGroup(simNeighDic, users, userMaxLen)
+        self.neighs = self.rvlist_to_rvnp(neighs, neighborMaxLen)
 
-    def transToNumpy(self):
+    def pad(self, reviews, maxLen):
+        # reviews = [[], [], [], ...]
+        dim = self.embedding_dim
+        orgLen = len(reviews)
+        if(orgLen < maxLen):
+            for i in range(maxLen - orgLen):
+                reviews.insert(0, np.zeros(dim))
+        else:
+            reviews = reviews[orgLen-maxLen : orgLen]
+        return reviews
+
+    def rvlist_to_rvnp(self, dic, maxLen):
+        newDic = {}
+        for key in dic.keys():
+            newDic[key] = self.pad(dic[key], maxLen)
+        return newDic
+
+    def filterUnsimilarUser(self, similarity, threshold):
+        neighborDic = {}
+        for user in similarity.keys():
+            neighborDic[user] = [simScoreTuple[1] for simScoreTuple in similarity[user] if simScoreTuple[0] > threshold]
+        return neighborDic
+
+    def buildGroup(self, neighborDic, users, userMaxLen):
+        neighbor_rvs = {}
+        for userId in neighborDic:
+            reviews = []
+            for neiId in neighborDic[userId]:
+                neiRvs = users[neiId]
+                if userMaxLen < len(neiRvs):
+                    neiRvs = neiRvs[len(neiRvs)-userMaxLen : len(neiRvs)]
+                for rv in neiRvs:
+                    reviews.append(rv)
+            neighbor_rvs[userId] = reviews
+        return neighbor_rvs
+
+    def splitTrainTest(self, fullData, percent):
+        trainLen = int(percent*len(fullData))
+        train = fullData[:trainLen]
+        test = fullData[trainLen:]
+        return train, test
+
+    def kerasInput(self):
         np.random.shuffle(self.samples)
         X_user = []
         X_movie = []
+        X_neigh = []
         Y = []
+
         for smp in self.samples:
-            Y.append(smp[0])
+            Y.append(smp[2])
+            X_user.append(self.users[smp[0]])
+            X_movie.append(self.movies[smp[1]])
+            X_neigh.append(self.neighs[smp[0]])
 
-            userList = self.users[smp[1]]
-            user_length = len(userList)
+        splitPercent = 0.8
+        User_train_test = self.splitTrainTest(np.asarray(X_user), splitPercent)
+        Movie_train_test = self.splitTrainTest(np.asarray(X_movie), splitPercent)
+        Neigh_train_test = self.splitTrainTest(np.asarray(X_neigh), splitPercent)
+        Y_train_test = self.splitTrainTest(np.asarray(Y), splitPercent)
 
-            if(user_length < self.user_input_length):
-                for i in range(self.user_input_length - user_length):
-                    userList.append(np.zeros(self.user_input_dim))
-            else:
-                userList = userList[len(userList)-self.user_input_length : len(userList)]
-            X_user.append(userList)
-
-            movieList = self.movies[smp[2]]
-            movie_length = len(movieList)
-            if(movie_length < self.movie_input_length):
-                for i in range(self.movie_input_length-movie_length):
-                    movieList.append(np.zeros(self.movie_input_dim))
-            else:
-                movieList = movieList[len(movieList) - self.movie_input_length : len(movieList)]
-            X_movie.append(movieList)
-        return np.asarray(X_user), np.asarray(X_movie), np.asarray(Y)
-
-    def splitTrainTest(self):
-        X_user, X_movie, Y = self.transToNumpy()
-        trainLen = int(len(X_user)*0.8)
-        X_user_train = X_user[:trainLen]
-        X_user_test = X_user[trainLen:]
-        X_movie_train = X_movie[:trainLen]
-        X_movie_test = X_movie[trainLen:]
-        Y_train = Y[:trainLen]
-        Y_test = Y[trainLen:]
-        return X_user_train, X_movie_train, Y_train, X_user_test, X_movie_test, Y_test
+        return User_train_test, Movie_train_test, Neigh_train_test, Y_train_test

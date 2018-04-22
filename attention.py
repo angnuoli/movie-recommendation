@@ -11,23 +11,28 @@ import os
 import csv
 
 
-class Recommend(object):
-    def __init__(self, path, userParams, movieParams, epoch, drop, rec_drop, l2):
+class NeuralModel(object):
+    def __init__(self, path, userParams, movieParams, neiParams, epoch, l2):
         self.path = path
+
         self.user_hid_dim = userParams['user_hid_dim']
         self.user_input_length = userParams['user_input_length']
         self.user_input_dim = userParams['user_input_dim']
+
         self.movie_hid_dim = movieParams['movie_hid_dim']
         self.movie_input_length = movieParams['movie_input_length']
         self.movie_input_dim = movieParams['movie_input_dim']
+
+        self.nei_hid_dim = neiParams['nei_hid_dim']
+        self.nei_input_length = neiParams['nei_input_length']
+        self.nei_input_dim = neiParams['nei_input_dim']
+
         self.epoch = epoch
-        self.drop = drop
-        self.rec_drop = rec_drop
         self.l2 = l2
 
     def attentionWrap(self, hid_dim, input_length, input_dim):
         inputs = Input(shape=(input_length, input_dim))
-        lstm = GRU(hid_dim, return_sequences=True, dropout=self.drop, recurrent_dropout=self.rec_drop, input_shape=(input_length, input_dim))(inputs)
+        lstm = GRU(hid_dim, return_sequences=True, dropout=0.2, recurrent_dropout=0.2, input_shape=(input_length, input_dim))(inputs)
         att = TimeDistributed(Dense(1, activation='tanh'))(lstm)
         att = Flatten()(att)
         att = Activation(activation='softmax')(att)
@@ -38,18 +43,18 @@ class Recommend(object):
         hid = Flatten()(hid)
         return inputs, hid
 
-    def build(self, X_user_train, X_movie_train, Y_train, X_user_test, X_movie_test, Y_test):
+    def build(self, X_user_train, X_movie_train, X_nei_train, Y_train, X_user_test, X_movie_test, X_nei_test, Y_test):
 
         input_user, user_rep = self.attentionWrap(self.user_hid_dim, self.user_input_length, self.user_input_dim)
         input_movie, movie_rep = self.attentionWrap(self.movie_hid_dim, self.movie_input_length, self.movie_input_dim)
-
-        x = concatenate([user_rep, movie_rep])
+        input_nei, nei_rep = self.attentionWrap(self.nei_hid_dim, self.nei_input_length, self.nei_input_dim)
+        x = concatenate([user_rep, movie_rep, nei_rep])
         x = Dense(1, kernel_regularizer=regularizers.l2(self.l2))(x)
-        model = Model(inputs=[input_user, input_movie], outputs = x)
+        model = Model(inputs=[input_user, input_movie, input_nei], outputs = x)
         model.compile(loss='mse', optimizer='adam')
-        hisObj = model.fit([X_user_train, X_movie_train], Y_train, epochs = self.epoch, validation_split=0.2, verbose =2)
+        hisObj = model.fit([X_user_train, X_movie_train, X_nei_train], Y_train, epochs = self.epoch, validation_split=0.2, verbose =2)
         his = hisObj.history
-        loss = model.evaluate([X_user_test, X_movie_test], Y_test, verbose =0)
+        loss = model.evaluate([X_user_test, X_movie_test, X_nei_test], Y_test, verbose =0)
         print('test loss: ' + str(loss))
 
         configFILE = os.path.join(self.path,'configJson')
