@@ -4,16 +4,11 @@ from keras.layers.pooling import AveragePooling1D
 from keras.layers import concatenate, multiply, Activation, Dense, Flatten, Input, Permute, RepeatVector, TimeDistributed, GRU
 from keras.models import Model
 from keras import regularizers
-# from keras.utils import plot_model
 
 import numpy as np
-import os
-import csv
-
 
 class NeuralModel(object):
-    def __init__(self, path, userParams, movieParams, neiParams, epoch, l2):
-        self.path = path
+    def __init__(self, userParams, movieParams, neiParams, epoch, l2):
 
         self.user_hid_dim = userParams['user_hid_dim']
         self.user_input_length = userParams['user_input_length']
@@ -56,23 +51,7 @@ class NeuralModel(object):
         his = hisObj.history
         loss = model.evaluate([X_user_test, X_movie_test, X_nei_test], Y_test, verbose =0)
         print('test loss: ' + str(loss))
+        return model, his, loss
 
-        configFILE = os.path.join(self.path,'configJson')
-        weightFILE = os.path.join(self.path, 'weight.h5')
-        resultFILE = os.path.join(self.path, 'loss.csv')
-        picFILE = os.path.join(self.path, 'model.png')
-        json_string = model.to_json()
-        with open(configFILE, 'w') as f:
-            f.write(json_string)
-        model.save_weights(weightFILE)
 
-        trainLoss = his['loss']
-        valLoss = his['val_loss']
-        with open(resultFILE, 'w') as csvfile:
-            writer=csv.writer(csvfile)
-            writer.writerow([str(x) for x in trainLoss])
-            writer.writerow([str(x) for x in valLoss])
-            writer.writerow([loss])
-
-        # plot_model(model, to_file=picFILE)
 
