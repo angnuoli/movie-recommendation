@@ -46,5 +46,5 @@ if __name__ == "__main__":
     adp = Adapt(samples, users, movies, fullSimilarity, userMaxLen, movieMaxLen, neiMaxLen, sim_thresh, embedding_dim)
     User_train_test, Movie_train_test, Neigh_train_test, Y_train_test = adp.kerasInput()
     att = NeuralModel(userParams, movieParams, neiParams, epoch, l2)
-    att.build(User_train_test[0], Movie_train_test[0], Neigh_train_test[0], Y_train_test[0], User_train_test[1], Movie_train_test[1], Neigh_train_test[1], Y_train_test[1])
+    model, history, tesLoss = att.build(User_train_test[0], Movie_train_test[0], Neigh_train_test[0], Y_train_test[0], User_train_test[1], Movie_train_test[1], Neigh_train_test[1], Y_train_test[1])
     pst.recordResult(model, history, tesLoss)
