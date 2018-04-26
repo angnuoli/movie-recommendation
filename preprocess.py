@@ -21,8 +21,8 @@ def preprocess():
 
     # data structure: reviews[i]['rating', 'title', 'movie', 'review', 'link', 'user']
     StaticData.reviews = reviews
-    train_reviews, test_reviews = split_dataset(reviews)
-    # train_reviews = test_reviews = reviews
+    # train_reviews, test_reviews = split_dataset(reviews)
+    train_reviews = test_reviews = reviews
     # StaticData.train_reviews = train_reviews
     StaticData.test_reviews = test_reviews
 
@@ -30,6 +30,7 @@ def preprocess():
     movies = {}
     samples = []
 
+    print("Compute vector...")
     for train_review in train_reviews:
         review = "{} {}".format(train_review['review'], train_review['title'])
         movie_id = train_review['movie']

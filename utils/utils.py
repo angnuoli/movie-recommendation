@@ -20,7 +20,7 @@ def str_to_words(text=""):
     return words
 
 
-def split_dataset(dataset, test_size=0.3, train_size=0.7):
+def split_dataset(dataset, test_size=0.2, train_size=0.7):
     """
     This method is to split the dataset into train dataset and test dataset.
     :param train_size:
@@ -28,9 +28,9 @@ def split_dataset(dataset, test_size=0.3, train_size=0.7):
     :param dataset:
     :return:
     """
-    train, test = train_test_split(dataset, test_size, train_size)
-
-    return train, test
+    # train, test = train_test_split(dataset, test_size)
+    pass
+    # return train, test
 
 
 def list_words_to_vector(words=None):
@@ -50,3 +50,11 @@ def list_words_to_vector(words=None):
             vector += StaticData.word_vectors.get_vector(word)
 
     return vector / m
+
+
+def transform(users):
+    temp_users = {}
+    for id in users.keys():
+        temp_users[id] = users[id].reviews
+
+    return temp_users
