@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     # save data and modify embedding_dim to 300
     samples, users, movies = preprocess()
-    samples = samples[0:3000]
+    samples = samples[0:10000]
     users = transform(users)
     movies = transform(movies)
     # pst.saveSamples(samples, 'samples.csv')
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     # movies = pst.loadReviews('movies.csv')
 
     # tuning
-    epoch = 10
+    epoch = 20
     l2 = 0.01
     uhid = 128
     mhid = 128
