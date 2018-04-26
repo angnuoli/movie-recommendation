@@ -1,15 +1,16 @@
 # from keras.utils import plot_model
-import os
 import csv
+import os
+
 
 class PostProcess(object):
     def __init__(self, path):
         self.path = path
-    
+
     def saveSamples(self, samples, file):
         workSpace = os.path.join(self.path, 'data')
         filePath = os.path.join(workSpace, file)
-        with open(filePath, 'w', newline = '') as csvfile:
+        with open(filePath, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
             for userId_movieId_rate in samples:
                 writer.writerow([str(x) for x in userId_movieId_rate])
@@ -17,7 +18,7 @@ class PostProcess(object):
     def saveReviews(self, id_reviews_dic, file):
         workSpace = os.path.join(self.path, 'data')
         filePath = os.path.join(workSpace, file)
-        with open(filePath, 'w', newline = '') as csvfile:
+        with open(filePath, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow([str(len(id_reviews_dic))])
             for key in id_reviews_dic.keys():
@@ -30,7 +31,7 @@ class PostProcess(object):
     def loadReviews(self, file):
         workSpace = os.path.join(self.path, 'data')
         filePath = os.path.join(workSpace, file)
-        id_reviews= {}
+        id_reviews = {}
         with open(filePath, 'r') as csvfile:
             reader = csv.reader(csvfile)
             userLen = int(next(reader)[0])
@@ -44,12 +45,11 @@ class PostProcess(object):
                 id_reviews[ID] = rvs
         return id_reviews
 
-
     def loadSamples(self, file):
         workSpace = os.path.join(self.path, 'data')
         filePath = os.path.join(workSpace, file)
         samples = []
-        with open(filePath,'r') as csvfile:
+        with open(filePath, 'r') as csvfile:
             reader = csv.reader(csvfile)
             for row in reader:
                 smp = []
@@ -61,7 +61,7 @@ class PostProcess(object):
 
     def recordResult(self, model, history, testLoss):
         workSpace = os.path.join(self.path, 'result')
-        configFILE = os.path.join(workSpace,'configJson')
+        configFILE = os.path.join(workSpace, 'configJson')
         weightFILE = os.path.join(workSpace, 'weight.h5')
         resultFILE = os.path.join(workSpace, 'loss.csv')
         picFILE = os.path.join(workSpace, 'model.png')
@@ -73,7 +73,7 @@ class PostProcess(object):
         trainLoss = history['loss']
         valLoss = history['val_loss']
         with open(resultFILE, 'w', newline='') as csvfile:
-            writer=csv.writer(csvfile)
+            writer = csv.writer(csvfile)
             writer.writerow([str(x) for x in trainLoss])
             writer.writerow([str(x) for x in valLoss])
             writer.writerow([testLoss])

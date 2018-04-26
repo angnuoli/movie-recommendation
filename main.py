@@ -30,8 +30,8 @@ if __name__ == "__main__":
     # movies = pst.loadReviews('movies.csv')
 
     # tuning
-    epoch = 20
-    l2 = 0.01
+    epoch = 10
+    l2 = 0.0001
     uhid = 128
     mhid = 128
     nhid = 128

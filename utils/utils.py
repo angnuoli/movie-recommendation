@@ -5,13 +5,13 @@ from data_structure.StaticData import StaticData
 from utils.Vectorizer import MyVectorizer
 
 
-def str_to_vector(text=""):
+def str_to_vector(text, word_vectors):
     if len(text) == 0:
         print("The length is not valid.")
         return
 
     words = str_to_words(text)
-    return list_words_to_vector(words)
+    return list_words_to_vector(words, word_vectors)
 
 
 def str_to_words(text=""):
@@ -33,7 +33,7 @@ def split_dataset(dataset, test_size=0.2, train_size=0.7):
     # return train, test
 
 
-def list_words_to_vector(words=None):
+def list_words_to_vector(words=None, word_vectors=None):
     """
     Convert a list of words to a ndarray(300) vector.
 
@@ -44,10 +44,9 @@ def list_words_to_vector(words=None):
         raise RuntimeError("The words list is None")
     m = len(words)
     vector = np.zeros(300)
-    word_vectors = StaticData.word_vectors
     for word in words:
         if word in word_vectors.vocab:
-            vector += StaticData.word_vectors.get_vector(word)
+            vector += word_vectors.get_vector(word)
 
     return vector / m
 
