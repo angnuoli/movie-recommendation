@@ -15,11 +15,11 @@ if __name__ == "__main__":
     path = os.path.abspath('.')
     pst = PostProcess(path)
 
-    # save data and modify embedding_dim to 300
     samples, users, movies = preprocess()
     samples = samples[0:10000]
     users = transform(users)
     movies = transform(movies)
+
     # pst.saveSamples(samples, 'samples.csv')
     # pst.saveReviews(users, 'users.csv')
     # pst.saveReviews(movies, 'movies.csv')
@@ -36,25 +36,32 @@ if __name__ == "__main__":
     mhid = 128
     nhid = 128
     userMaxLen = 20
-    movieMaxLen = 30
-    neiMaxLen = 50
+    movieMaxLen = 40
+    neiMaxLen = 60
+    usingNeiModel = False
+    jobName = 'default'
 
     # constant
-    sim_thresh = 0.25
+    sim_thresh = 0.5
     embedding_dim = 300
-    userParams = {'user_hid_dim': uhid, 'user_input_length': userMaxLen, 'user_input_dim': embedding_dim}
-    movieParams = {'movie_hid_dim': mhid, 'movie_input_length': movieMaxLen, 'movie_input_dim': embedding_dim}
-    neiParams = {'nei_hid_dim': nhid, 'nei_input_length': neiMaxLen, 'nei_input_dim': embedding_dim}
+    attParamDic = {'user': [uhid, userMaxLen, embedding_dim], 
+    'movie': [mhid, movieMaxLen, embedding_dim], 'nei': [nhid, neiMaxLen, embedding_dim]}
+    path = os.path.abspath('.')
+    pst = PostProcess(path)
 
     # execute
     cf = CFUtil(samples)
     fullSimilarity = cf.simUser()
     print("Adapt data...")
     adp = Adapt(samples, users, movies, fullSimilarity, userMaxLen, movieMaxLen, neiMaxLen, sim_thresh, embedding_dim)
-    User_train_test, Movie_train_test, Neigh_train_test, Y_train_test = adp.kerasInput()
-    att = NeuralModel(userParams, movieParams, neiParams, epoch, l2)
-    print("Build model...")
-    model, history, tesLoss = att.build(User_train_test[0], Movie_train_test[0], Neigh_train_test[0], Y_train_test[0],
-                                        User_train_test[1], Movie_train_test[1], Neigh_train_test[1], Y_train_test[1])
-    print("Record training history...")
-    pst.recordResult(model, history, tesLoss)
+
+    User_train_test, Movie_train_test, Neigh_train_test, Y_train_test, sflSmps = adp.kerasInput()
+    X_train_test= {'user':User_train_test, 'movie':Movie_train_test, 'nei':Neigh_train_test}
+    att = NeuralModel(attParamDic, epoch, l2)
+    history, tesLoss, predicts = att.build(X_train_test, Y_train_test, usingNeiModel)
+    comparison = []
+    for i in range(len(predicts)):
+        smp = sflSmps[i]
+        comparison.append([smp[0], smp[1], smp[2], predicts[i][0]])
+
+    pst.recordResult(history, tesLoss, comparison, fileModifier=jobName)

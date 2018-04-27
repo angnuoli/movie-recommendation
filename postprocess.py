@@ -59,23 +59,28 @@ class PostProcess(object):
                 samples.append(smp)
         return samples
 
-    def recordResult(self, model, history, testLoss):
+    def recordResult(self, history, testLoss, trgt_prdt, fileModifier = 'default'):
         workSpace = os.path.join(self.path, 'result')
-        configFILE = os.path.join(workSpace, 'configJson')
-        weightFILE = os.path.join(workSpace, 'weight.h5')
-        resultFILE = os.path.join(workSpace, 'loss.csv')
-        picFILE = os.path.join(workSpace, 'model.png')
-        json_string = model.to_json()
-        with open(configFILE, 'w') as f:
-            f.write(json_string)
-        model.save_weights(weightFILE)
+<<<<<<< HEAD
+        # configFILE = os.path.join(workSpace,'configJson')
+        # weightFILE = os.path.join(workSpace, 'weight.h5')
+        lossFILE = os.path.join(workSpace, fileModifier+'_loss.csv')
+        cmpFILE = os.path.join(workSpace, fileModifier+'_rateCmp.csv')
+        # picFILE = os.path.join(workSpace, 'model.png')
+        # json_string = model.to_json()
+        # with open(configFILE, 'w') as f:
+        #     f.write(json_string)
+        # model.save_weights(weightFILE)
 
         trainLoss = history['loss']
         valLoss = history['val_loss']
-        with open(resultFILE, 'w', newline='') as csvfile:
-            writer = csv.writer(csvfile)
+        with open(lossFILE, 'w', newline='') as csvfile:
+            writer=csv.writer(csvfile)
             writer.writerow([str(x) for x in trainLoss])
             writer.writerow([str(x) for x in valLoss])
             writer.writerow([testLoss])
 
-        # plot_model(model, to_file=picFILE)
+        with open(cmpFILE, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            for cmp in trgt_prdt:
+                writer.writerow([str(x) for x in cmp]) 
