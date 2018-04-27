@@ -5,13 +5,13 @@ from data_structure.StaticData import StaticData
 from utils.Vectorizer import MyVectorizer
 
 
-def str_to_vector(text=""):
+def str_to_vector(text, word_vectors):
     if len(text) == 0:
         print("The length is not valid.")
         return
 
     words = str_to_words(text)
-    return list_words_to_vector(words)
+    return list_words_to_vector(words, word_vectors)
 
 
 def str_to_words(text=""):
@@ -20,7 +20,7 @@ def str_to_words(text=""):
     return words
 
 
-def split_dataset(dataset, test_size=0.3, train_size=0.7):
+def split_dataset(dataset, test_size=0.2, train_size=0.7):
     """
     This method is to split the dataset into train dataset and test dataset.
     :param train_size:
@@ -28,12 +28,12 @@ def split_dataset(dataset, test_size=0.3, train_size=0.7):
     :param dataset:
     :return:
     """
-    train, test = train_test_split(dataset, test_size, train_size)
+    # train, test = train_test_split(dataset, test_size)
+    pass
+    # return train, test
 
-    return train, test
 
-
-def list_words_to_vector(words=None):
+def list_words_to_vector(words=None, word_vectors=None):
     """
     Convert a list of words to a ndarray(300) vector.
 
@@ -44,9 +44,16 @@ def list_words_to_vector(words=None):
         raise RuntimeError("The words list is None")
     m = len(words)
     vector = np.zeros(300)
-    word_vectors = StaticData.word_vectors
     for word in words:
         if word in word_vectors.vocab:
-            vector += StaticData.word_vectors.get_vector(word)
+            vector += word_vectors.get_vector(word)
 
     return vector / m
+
+
+def transform(users):
+    temp_users = {}
+    for id in users.keys():
+        temp_users[id] = users[id].reviews
+
+    return temp_users

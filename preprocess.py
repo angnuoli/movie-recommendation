@@ -6,6 +6,8 @@ import codecs
 from data_structure import StaticData
 from data_structure.data_structure import User, Movie
 from utils.utils import str_to_vector, split_dataset
+import gc
+from gensim.models import KeyedVectors
 
 
 def preprocess():
@@ -18,11 +20,13 @@ def preprocess():
     """
     with codecs.open('../dataset/data.json', 'r', 'utf-8') as f:
         reviews = json.load(f)
+        f.close()
 
+    word_vectors = KeyedVectors.load_word2vec_format('../dataset/GoogleNews-vectors-negative300.bin', binary=True)
     # data structure: reviews[i]['rating', 'title', 'movie', 'review', 'link', 'user']
     StaticData.reviews = reviews
-    train_reviews, test_reviews = split_dataset(reviews)
-    # train_reviews = test_reviews = reviews
+    # train_reviews, test_reviews = split_dataset(reviews)
+    train_reviews = test_reviews = reviews
     # StaticData.train_reviews = train_reviews
     StaticData.test_reviews = test_reviews
 
@@ -30,12 +34,13 @@ def preprocess():
     movies = {}
     samples = []
 
+    print("Compute vector...")
     for train_review in train_reviews:
         review = "{} {}".format(train_review['review'], train_review['title'])
         movie_id = train_review['movie']
         user_id = train_review['user']
         rating = train_review['rating']
-        vector = str_to_vector(review)
+        vector = str_to_vector(review, word_vectors)
 
         if user_id not in users.keys():
             users[user_id] = User(user_id)
@@ -51,6 +56,9 @@ def preprocess():
         samples.append([user_id, movie_id, rating])
 
     # print(reviews[0]['review'])
+    del reviews
+    del word_vectors
+    gc.collect()
     StaticData.users = users
     StaticData.movies = movies
 

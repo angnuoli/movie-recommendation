@@ -1,20 +1,25 @@
 # from preprocess import preprocess
-from attention import NeuralModel
-from adapter import Adapt
-from recommend import CFUtil
-from postprocess import PostProcess
+import os
 
 import numpy as np
-import os
+
+from adapter import Adapt
+from attention import NeuralModel
+from postprocess import PostProcess
+from preprocess import preprocess
+from recommend import CFUtil
+from utils.utils import transform
 
 if __name__ == "__main__":
     np.random.seed(100)
     path = os.path.abspath('.')
     pst = PostProcess(path)
 
-    # save data and modify embedding_dim to 300
-    # samples, users, movies = preprocess()
     samples, users, movies = preprocess()
+    samples = samples[0:10000]
+    users = transform(users)
+    movies = transform(movies)
+
     # pst.saveSamples(samples, 'samples.csv')
     # pst.saveReviews(users, 'users.csv')
     # pst.saveReviews(movies, 'movies.csv')
@@ -25,8 +30,8 @@ if __name__ == "__main__":
     # movies = pst.loadReviews('movies.csv')
 
     # tuning
-    epoch=1
-    l2 = 0.01
+    epoch = 10
+    l2 = 0.0001
     uhid = 128
     mhid = 128
     nhid = 128
@@ -44,10 +49,12 @@ if __name__ == "__main__":
     path = os.path.abspath('.')
     pst = PostProcess(path)
 
-    #excute
+    # execute
     cf = CFUtil(samples)
     fullSimilarity = cf.simUser()
+    print("Adapt data...")
     adp = Adapt(samples, users, movies, fullSimilarity, userMaxLen, movieMaxLen, neiMaxLen, sim_thresh, embedding_dim)
+
     User_train_test, Movie_train_test, Neigh_train_test, Y_train_test, sflSmps = adp.kerasInput()
     X_train_test= {'user':User_train_test, 'movie':Movie_train_test, 'nei':Neigh_train_test}
     att = NeuralModel(attParamDic, epoch, l2)
