@@ -71,4 +71,4 @@ class Adapt(object):
         Neigh_train_test = self.splitTrainTest(np.asarray(X_neigh), splitPercent)
         Y_train_test = self.splitTrainTest(np.asarray(Y), splitPercent)
 
-        return User_train_test, Movie_train_test, Neigh_train_test, Y_train_test
+        return User_train_test, Movie_train_test, Neigh_train_test, Y_train_test, self.samples

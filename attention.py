@@ -8,20 +8,8 @@ from keras import regularizers
 import numpy as np
 
 class NeuralModel(object):
-    def __init__(self, userParams, movieParams, neiParams, epoch, l2):
-
-        self.user_hid_dim = userParams['user_hid_dim']
-        self.user_input_length = userParams['user_input_length']
-        self.user_input_dim = userParams['user_input_dim']
-
-        self.movie_hid_dim = movieParams['movie_hid_dim']
-        self.movie_input_length = movieParams['movie_input_length']
-        self.movie_input_dim = movieParams['movie_input_dim']
-
-        self.nei_hid_dim = neiParams['nei_hid_dim']
-        self.nei_input_length = neiParams['nei_input_length']
-        self.nei_input_dim = neiParams['nei_input_dim']
-
+    def __init__(self, attParamDic, epoch, l2):
+        self.attParamDic = attParamDic
         self.epoch = epoch
         self.l2 = l2
 
@@ -38,20 +26,34 @@ class NeuralModel(object):
         hid = Flatten()(hid)
         return inputs, hid
 
-    def build(self, X_user_train, X_movie_train, X_nei_train, Y_train, X_user_test, X_movie_test, X_nei_test, Y_test):
-
-        input_user, user_rep = self.attentionWrap(self.user_hid_dim, self.user_input_length, self.user_input_dim)
-        input_movie, movie_rep = self.attentionWrap(self.movie_hid_dim, self.movie_input_length, self.movie_input_dim)
-        input_nei, nei_rep = self.attentionWrap(self.nei_hid_dim, self.nei_input_length, self.nei_input_dim)
-        x = concatenate([user_rep, movie_rep, nei_rep])
+    def build(self, name_train_test, Y_train_test, tag):
+        mdlNameList = ['user', 'movie']
+        if(tag):
+            mdlNameList.append('nei')
+        fXtrain=[]
+        fXtest=[]
+        finput = []
+        frep = []
+        Ytrain = Y_train_test[0]
+        Ytest = Y_train_test[1]
+        for name in mdlNameList:
+            loc_param = self.attParamDic[name]
+            loc_input, loc_rep =self.attentionWrap(loc_param[0], loc_param[1], loc_param[2])
+            finput.append(loc_input)
+            frep.append(loc_rep)
+            fXtrain.append(name_train_test[name][0])
+            fXtest.append(name_train_test[name][1])
+  
+        x = concatenate(frep)
         x = Dense(1, kernel_regularizer=regularizers.l2(self.l2))(x)
-        model = Model(inputs=[input_user, input_movie, input_nei], outputs = x)
+        model = Model(inputs=finput, outputs = x)
         model.compile(loss='mse', optimizer='adam')
-        hisObj = model.fit([X_user_train, X_movie_train, X_nei_train], Y_train, epochs = self.epoch, validation_split=0.2, verbose =2)
-        his = hisObj.history
-        loss = model.evaluate([X_user_test, X_movie_test, X_nei_test], Y_test, verbose =0)
+        hisObj = model.fit(fXtrain, Ytrain, epochs = self.epoch, validation_split=0.2, verbose =2)
+        loss = model.evaluate(fXtest, Ytest, verbose =0)
+        predicts = model.predict(fXtest)
+
         print('test loss: ' + str(loss))
-        return model, his, loss
+        return hisObj.history, loss, predicts
 
 
 
