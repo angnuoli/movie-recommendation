@@ -16,7 +16,7 @@ if __name__ == "__main__":
     pst = PostProcess(path)
 
     samples, users, movies = preprocess()
-    samples = samples[0:10000]
+    samples = samples[0:20000]
     users = transform(users)
     movies = transform(movies)
 
@@ -31,18 +31,18 @@ if __name__ == "__main__":
 
     # tuning
     epoch = 10
-    l2 = 0.0001
+    l2 = 0.01
     uhid = 128
     mhid = 128
     nhid = 128
-    userMaxLen = 20
-    movieMaxLen = 40
-    neiMaxLen = 60
-    usingNeiModel = False
+    userMaxLen = 5
+    movieMaxLen = 10
+    neiMaxLen = 15
+    usingNeiModel = True
     jobName = 'default'
 
     # constant
-    sim_thresh = 0.5
+    sim_thresh = 0.25
     embedding_dim = 300
     attParamDic = {'user': [uhid, userMaxLen, embedding_dim], 
     'movie': [mhid, movieMaxLen, embedding_dim], 'nei': [nhid, neiMaxLen, embedding_dim]}

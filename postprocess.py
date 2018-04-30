@@ -61,7 +61,6 @@ class PostProcess(object):
 
     def recordResult(self, history, testLoss, trgt_prdt, fileModifier = 'default'):
         workSpace = os.path.join(self.path, 'result')
-<<<<<<< HEAD
         # configFILE = os.path.join(workSpace,'configJson')
         # weightFILE = os.path.join(workSpace, 'weight.h5')
         lossFILE = os.path.join(workSpace, fileModifier+'_loss.csv')
